@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.19;
 
 /**
  * @title ChargingReservation
@@ -8,9 +8,6 @@ pragma solidity ^0.8.9;
  */
 contract ChargingReservation {
     address public owner;
-    uint256 public reservationFee;
-    uint256 public totalReservations;
-
     /**
      * @dev Mapping from account address to reservation count.
      */
@@ -23,20 +20,22 @@ contract ChargingReservation {
         _;
     }
 
-    constructor(uint256 _reservationFee) {
+    constructor() {
         owner = msg.sender;
-        reservationFee = _reservationFee;
     }
 
     /**
      * @notice Make a reservation for the charging station.
      * @dev Users can make a reservation by paying the reservation fee.
      */
-    function makeReservation() external payable {
-        require(msg.value == reservationFee, "Incorrect reservation fee");
+    function makeReservation(
+        address _user,
+        string memory _plateLicense,
+        uint256 _positionX,
+        uint256 _positionY
+    ) external payable {
         //TODO:post request through Oracles
         reservations[msg.sender]++;
-        totalReservations++;
         emit ReservationMade(msg.sender, block.timestamp);
     }
 
@@ -45,6 +44,7 @@ contract ChargingReservation {
      * @dev Only the owner can withdraw the accumulated reservation fees.
      */
     function withdrawFees() external onlyOwner {
+        reservations[msg.sender]--;
         payable(owner).transfer(address(this).balance);
     }
 }
