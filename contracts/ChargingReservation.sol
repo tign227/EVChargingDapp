@@ -12,32 +12,47 @@ contract ChargingReservation {
      */
     mapping(address => uint256) public reservations;
 
-    event ReservationMade(address indexed user, uint256 timestamp);
+    event ReservationMade(
+        address indexed _user,
+        string _plateLicense,
+        string _chargingStationName,
+        string _chargingStationAddress,
+        uint256 _startTime,
+        uint256 _endTime
+    );
 
-    constructor() {
-    }
+    constructor() {}
+
     //console test
-    function greet() public pure returns(string memory) {
+    function greet() public pure returns (string memory) {
         return "Hello World";
     }
+
     /**
      * @notice Make a reservation for the charging station.
      * @dev Users can make a reservation by paying the reservation fee.
      */
     function makeReservation(
-        address _reserverAddress,
+        address _user,
         string memory _plateLicense,
-        uint256 _positionX,
-        uint256 _positionY,
-        uint256 _chargingStationID,
-        string memory _chargingStationAddress,
         string memory _chargingStationName,
+        string memory _chargingStationAddress,
         uint256 _startTime,
         uint256 _endTime
-    ) external payable returns (string memory status){
-        //TODO:post request through Oracles
-        reservations[msg.sender]++;
-        emit ReservationMade(msg.sender, block.timestamp);
+    ) external payable returns (string memory status) {
+        require(
+            reservations[_user] == 0,
+            "You have a unfinished charging reservation"
+        );
+        reservations[_user]++;
+        emit ReservationMade(
+            _user,
+            _plateLicense,
+            _chargingStationName,
+            _chargingStationAddress,
+            _startTime,
+            _endTime
+        );
         return "200";
     }
 }
