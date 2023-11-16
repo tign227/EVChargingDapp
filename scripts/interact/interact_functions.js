@@ -8,8 +8,9 @@ async function main() {
     const url = "http://endpoint-dun.vercel.app/api/reservation"
     const path = "message,reservationDetails,chargingStation,stationID"
     await functions.request(url, path);
-    const result = await functions.result();
-    console.log(result);
+    functions.on("RequestMade", (_requestId,_eventName , _result) => {
+      console.log(_result, _eventName);
+    });
 
   } catch (error) {
     console.error(error);
