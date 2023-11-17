@@ -4,7 +4,7 @@ async function main() {
   try {
     const FunctionsService = await hre.ethers.getContractFactory("FunctionsService");
     //replace with your smart contract address 
-    const contractAddress = "0x25b6c8344cA222D9A05cF31c74f03D5683883509"; 
+    const contractAddress = "0x39C6657fAbBb2a58f82582c84F54E269eaAB97D5"; 
     const functions = await FunctionsService.attach(contractAddress);
 
     const url = "http://endpoint-dun.vercel.app/api/reservation"

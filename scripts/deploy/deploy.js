@@ -7,8 +7,8 @@ async function main() {
   const reservation = await hre.ethers.deployContract("ChargingReservation", [functions.target]);
   await reservation.waitForDeployment();
   
-  console.log("FunctionsService is deployed, the address is : ", functions.target);
-  console.log("ChargingReservation is deployed, the address is : ", reservation.target);
+  console.log("FunctionsService is deployed remotely, the address is : ", functions.target);
+  console.log("ChargingReservation is deployed remotely, the address is : ", reservation.target);
 }
 
 main().catch((error) => {

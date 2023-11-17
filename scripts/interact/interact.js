@@ -4,12 +4,12 @@ async function main() {
   try {
     const ChargingReservation = await hre.ethers.getContractFactory("ChargingReservation");
     //replace with your smart contract address
-    const reservationContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+    const reservationContractAddress = "0x72410822682C6Ea9D4F6fD645f4e9352f1021048";
     const reservation = await ChargingReservation.attach(reservationContractAddress);
 
     const FunctionsService = await hre.ethers.getContractFactory("FunctionsService");
     //replace with your smart contract address
-    const serviceContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    const serviceContractAddress = "0x39C6657fAbBb2a58f82582c84F54E269eaAB97D5";
 
     //event trigger
     const functions = await FunctionsService.attach(serviceContractAddress);
