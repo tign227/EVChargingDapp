@@ -52,7 +52,7 @@ contract ChargingReservation {
         //     "You have a unfinished charging reservation"
         // );
         reservations[_user]++;
-        service.request("Reservation", "http://endpoint-dun.vercel.app/api/reservation", "message,reservationDetails,chargingStation,stationID");
+        service.request("http://endpoint-dun.vercel.app/api/reservation", "message,reservationDetails,chargingStation,stationID");
         emit ReservationMade(
             _user,
             _plateLicense,

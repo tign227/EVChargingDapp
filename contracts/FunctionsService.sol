@@ -12,7 +12,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     bytes32 private jobId;
     uint256 private fee;
 
-    event RequestMade(bytes32 indexed requestId,string indexed eventName, string result);
+    event RequestMade(bytes32 indexed requestId, string result);
 
     constructor() ConfirmedOwner(msg.sender) {
         setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
@@ -20,7 +20,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
         jobId = "7d80a6386ef543a3abb52817f6707e3b";
         fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
     }
-    function request(string memory eventName, string memory url, string memory path) public returns (bytes32 requestId) {
+    function request(string memory url, string memory path) public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
             jobId,
             address(this),
@@ -40,10 +40,9 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
      */
     function fulfill(
         bytes32 _requestId,
-        string memory eventName,
         string memory _result
     ) public recordChainlinkFulfillment(_requestId) {
-        emit RequestMade(_requestId, eventName, _result);
+        emit RequestMade(_requestId, _result);
         result = _result;
     }
 

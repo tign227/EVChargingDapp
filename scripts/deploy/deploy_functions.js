@@ -3,8 +3,8 @@ const hre = require("hardhat");
 async function main() {
   const functions = await hre.ethers.deployContract("FunctionsService");
   await functions.waitForDeployment();
-  console.log("FunctionsService is deployed!!!");
-  console.log("the Address of FunctionsService is : ", (await functions.getAddress()).toString());
+  const address = await functions.getAddress();
+  console.log("FunctionsService is deployed, the address is : ", address.toString());
 }
 
 main().catch((error) => {
