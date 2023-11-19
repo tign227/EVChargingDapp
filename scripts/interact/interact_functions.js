@@ -4,16 +4,16 @@ async function main() {
   try {
     const FunctionsService = await hre.ethers.getContractFactory("FunctionsService");
     //replace with your smart contract address 
-    const contractAddress = "0x39C6657fAbBb2a58f82582c84F54E269eaAB97D5"; 
+    const contractAddress = "0x9ecd38366e1F6C477A2Bfc17A6A7618A2D67516A"; 
     const functions = await FunctionsService.attach(contractAddress);
 
     const url = "http://endpoint-dun.vercel.app/api/reservation"
-    const path = "message,reservationDetails,chargingStation,stationID"
+    const path = "message,message"
 
-    await functions.request(url, path);
+    await functions.request("Unknown", url, path);
 
-    functions.on("RequestMade", (_requestId , _result) => {
-      console.log(_requestId, _result);
+    functions.on("RequestMade", (_requestId, _requestType, _result) => {
+        console.log(_requestType, "====>", _result);
     });
 
   } catch (error) {

@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 import "./FunctionsService.sol";
+
 /**
  * @title ChargingReservation
  * @dev This contract manages charging reservation functionality.
  * It is responsible for handling reservation and withdrawing.
  */
 
-
 contract ChargingReservation {
     /**
      * @dev Mapping from account address to reservation count.
      */
     mapping(address => uint256) public reservations;
-    
+
     FunctionsService service;
     string public result;
 
@@ -40,19 +40,17 @@ contract ChargingReservation {
      * @dev Users can make a reservation by paying the reservation fee.
      */
     function makeReservation(
+        string memory url,
+        string memory path,
         address _user,
         string memory _plateLicense,
         string memory _chargingStationName,
         string memory _chargingStationAddress,
         uint256 _startTime,
         uint256 _endTime
-    ) external payable returns (string memory status) {
-        // require(
-        //     reservations[_user] == 0,
-        //     "You have a unfinished charging reservation"
-        // );
+    ) external payable {
         reservations[_user]++;
-        service.request("http://endpoint-dun.vercel.app/api/reservation", "message,reservationDetails,chargingStation,stationID");
+        service.request("Reservation", url, path);
         emit ReservationMade(
             _user,
             _plateLicense,
@@ -61,7 +59,5 @@ contract ChargingReservation {
             _startTime,
             _endTime
         );
-        result = service.result();
-        return "200";
     }
 }
