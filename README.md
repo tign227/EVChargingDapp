@@ -1,13 +1,13 @@
-# Sample Hardhat Project
+# Tesla Charging Dapp
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+**Project Overview:**
 
-Try running some of the following tasks:
+Create a decentralized application (DApp) that enables users to easily reserve and pay for Tesla charging stations. The DApp will feature map displays, reservation, and payment functionalities, promoting the use of cryptocurrencies in charging services.
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+**Key Features:**
+
+1. **Reservation Functionality:** Users can select and reserve charging stations through the DApp.
+
+2. **Payment Functionality:** Users can pay for charging fees using cryptocurrencies.
+
+3. **Map Display:** Provide an intuitive map interface that shows the locations of nearby charging stations.
