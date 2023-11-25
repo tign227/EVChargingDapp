@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 import "./FunctionsService.sol";
-import "@openzeppelin/contracts-v0.7/utils/Counters.sol";
 
 /**
  * @title ChargingReservation
@@ -9,22 +8,20 @@ import "@openzeppelin/contracts-v0.7/utils/Counters.sol";
  * It is responsible for handling reservation requests and interacting with external APIs.
  */
 contract ChargingReservation {
-    using Counters for Counters.Counter;
-
-    Counters.Counter private _idCounter;
-
     FunctionsService service;
 
     mapping(address => Reservation[]) public reservationsOfUser;
 
     struct Reservation {
-        uint256 id;
+        bytes32 id;
         string station;
         string lat;
         string lng;
     }
 
-    event ReservationCanceled(address indexed user, uint256 reservationId);
+    event ReservationCreated(address indexed user, bytes32 reservationId);
+
+    event ReservationCanceled(address indexed user, bytes32 reservationId);
 
     constructor(address serviceAddress) {
         service = FunctionsService(serviceAddress);
@@ -41,22 +38,23 @@ contract ChargingReservation {
         string memory lng,
         string memory url,
         string memory path
-    ) external payable {
+    ) external payable returns (bytes32 reservationId) {
         require(bytes(url).length > 0, "URL must not be empty");
         require(bytes(path).length > 0, "Path must not be empty");
         // Trigger a reservation request using the Chainlink service.
-        service.request("Reservation", url, path);
-        uint256 uuid = _idCounter.next();
+        bytes32 requestId = service.request("Reservation", url, path);
+        emit ReservationCreated(msg.sender, requestId);
         Reservation memory reservation = Reservation({
-            id: uuid,
-            staion: station,
+            id: requestId,
+            station: station,
             lat: lat,
             lng: lng
         });
         reservationsOfUser[msg.sender].push(reservation);
+        reservationId = requestId;
     }
 
-    function cancelReservation(uint256 reservationId) external {
+    function cancelReservation(bytes32 reservationId) external {
         require(
             reservationsOfUser[msg.sender].length > 0,
             "Reservation don't exist"
@@ -74,4 +72,24 @@ contract ChargingReservation {
         }
         revert("Reservation not found");
     }
+
+    function getReservation(
+        address user,
+        bytes32 reservationId
+    ) public view returns (Reservation memory) {
+        Reservation[] storage userReservations = reservationsOfUser[user];
+        for (uint256 i = 0; i < userReservations.length; i++) {
+            if (userReservations[i].id == reservationId) {
+                return userReservations[i];
+            }
+        }
+        revert("Reservation not found");
+    }
+
+    function getAllReservationsOfUser(
+        address user
+    ) public view returns (Reservation[] memory) {
+        return reservationsOfUser[user];
+    }
 }
+
