@@ -10,11 +10,23 @@ async function main() {
     //event trigger
     const functions = await FunctionsService.attach(serviceContractAddress);
 
-    functions.on("RequestMade", (_requestId, _requestType, _result) => {
-      if (_requestType === "Reservation") {
-        console.log("Reservation is made, the result is : ", _result);
-      } else if (_requestType === "Account") {
-        console.log("Query account, the address is : ", _result);
+    functions.on("RequestMade", (_requestId) => {
+      if (
+        keccak256(abi.encodePacked(functions.getRequestType(_requestId))) ==
+        keccak256(abi.encodePacked("Reservation"))
+      ) {
+        console.log(
+          "Reservation is made, the result is : ",
+          functions.getResult(_requestId)
+        );
+      } else if (
+        keccak256(abi.encodePacked(functions.getRequestType(_requestId))) ==
+        keccak256(abi.encodePacked("Account"))
+      ) {
+        console.log(
+          "Query account, the address is : ",
+          functions.getResult(_requestId)
+        );
       }
     });
 

@@ -24,7 +24,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     // Event to notify when a request is completed
     event RequestCompleted(bytes32 indexed requestId);
     // Event to notify when a request is canceled
-    event RequestCanceled(bytes32 requestId);
+    event RequestCanceled(bytes32 indexed requestId);
 
     modifier enoughLink() {
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
@@ -126,5 +126,32 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     function _withdrawLink(uint256 _fee) internal onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
         require(link.transfer(msg.sender, _fee), "Unable to transfer");
+    }
+
+    /**
+     * @dev Get the result of a completed request
+     * @param _requestId The unique identifier for the Chainlink request.
+     * @return _result the result of the completed request.
+     */
+    function getResult(
+        bytes32 _requestId
+    ) public view returns (string memory _result) {
+        require(
+            requestRecords[_requestId].status == RequestStatus.Completed,
+            "Request is not completed"
+        );
+        _result = requestRecords[_requestId].result;
+    }
+
+    /**
+     * @dev Get the request type for a given requestId.
+     * @param requestId The unique identifier for the Chainlink request.
+     * @return The request type associated with the requestId.
+     */
+    function getRequestType(
+        bytes32 requestId
+    ) public view returns (RequestType) {
+        RequestType requestType = requestRecords[requestId].requestType;
+        return requestType;
     }
 }
