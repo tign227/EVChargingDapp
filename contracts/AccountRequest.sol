@@ -12,9 +12,11 @@ contract AccountRequest {
 
     mapping(address => bytes32[]) public requestsOfUser;
 
-    event AccountRequestCreated(address indexed user, bytes32 requestId);
+    event AccountRequestCreated(address indexed _user, bytes32 _requestId);
 
-    event AccountRequestCanceled(address indexed user, bytes32 requestId);
+    event AccountRequestCanceled(address indexed _user, bytes32 _requestId);
+
+    event ErrorOccurred(string indexed _errorMessage);
 
     constructor(address _serviceAddress) {
         service = FunctionsService(_serviceAddress);
@@ -24,22 +26,35 @@ contract AccountRequest {
      * @dev Initiates an account information request using the Chainlink service.
      * @param _url The URL of the external API for account information.
      * @param _path The JSONPath to extract the account details from the API response.
+     * @return _requestId The ID of the request
      */
     function requestAccount(
         string memory _url,
         string memory _path
-    ) external returns (bytes32 requestId) {
+    ) external returns (bytes32 _requestId) {
         require(bytes(_url).length > 0, "URL must not be empty");
         require(bytes(_path).length > 0, "Path must not be empty");
         // Trigger an account information request using the Chainlink service.
-        requestId = service.request("Account", _url, _path);
-        emit AccountRequestCreated(msg.sender, requestId);
-        requestsOfUser[msg.sender].push(requestId);
+        _requestId = service.request("Account", _url, _path);
+        emit AccountRequestCreated(msg.sender, _requestId);
+        requestsOfUser[msg.sender].push(_requestId);
     }
 
-    // Function for a user to cancel a pending request
-    function cancelRequest(bytes32 _requestId) external {
-        service.cancelRequest(_requestId);
-        emit AccountRequestCanceled(msg.sender, _requestId);
+    /**
+     * @dev Allows a user to cancel a pending request.
+     * @param _requestId The ID of the request to be canceled.
+     * @return A boolean indicating the success of the cancellation.
+     */
+    function cancelRequest(bytes32 _requestId) external returns (bool) {
+        try service.cancelRequest(_requestId) {
+            emit AccountRequestCanceled(msg.sender, _requestId);
+        } catch Error(string memory errorMessage) {
+            emit ErrorOccurred(errorMessage);
+            return false;
+        } catch (bytes memory) {
+            emit ErrorOccurred("An error occurred");
+            return false;
+        }
+        return true;
     }
 }

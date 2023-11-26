@@ -12,35 +12,50 @@ contract ChargingReservation {
 
     mapping(address => bytes32[]) public reservationsOfUser;
 
-    event ReservationCreated(address indexed user, bytes32 reservationId);
+    event ReservationCreated(address indexed _user, bytes32 _reservationId);
 
-    event ReservationCanceled(address indexed user, bytes32 reservationId);
+    event ReservationCanceled(address indexed _user, bytes32 _reservationId);
 
-    constructor(address serviceAddress) {
-        service = FunctionsService(serviceAddress);
+    event ErrorOccurred(string indexed _errorMessage);
+
+    constructor(address _serviceAddress) {
+        service = FunctionsService(_serviceAddress);
     }
 
     /**
      * @dev Initiates a reservation request using the Chainlink service.
      * @param _url The URL of the external API for reservation details.
      * @param _path The JSONPath to extract the reservation details from the API response.
+     * @return _reservationId The ID of the reservation request
      */
     function makeReservation(
         string memory _url,
         string memory _path
-    ) external payable returns (bytes32 reservationId) {
+    ) external returns (bytes32 _reservationId) {
         require(bytes(_url).length > 0, "URL must not be empty");
         require(bytes(_path).length > 0, "Path must not be empty");
         // Trigger a reservation request using the Chainlink service.
         bytes32 requestId = service.request("Reservation", _url, _path);
-        reservationId = requestId;
-        emit ReservationCreated(msg.sender, reservationId);
-        reservationsOfUser[msg.sender].push(reservationId);
+        _reservationId = requestId;
+        emit ReservationCreated(msg.sender, _reservationId);
+        reservationsOfUser[msg.sender].push(_reservationId);
     }
 
-    function cancelReservation(bytes32 _reservationId) public returns (bool) {
-        service.cancelRequest(_reservationId);
-        emit ReservationCanceled(msg.sender, _reservationId);
+    /**
+     * @dev Allows a user to cancel a reservation request.
+     * @param _reservationId The ID of the reservation to be canceled.
+     * @return A boolean indicating the success of the cancellation.
+     */
+    function cancelReservation(bytes32 _reservationId) external returns (bool) {
+        try service.cancelRequest(_reservationId) {
+            emit ReservationCanceled(msg.sender, _reservationId);
+        } catch Error(string memory errorMessage) {
+            emit ErrorOccurred(errorMessage);
+            return false;
+        } catch (bytes memory) {
+            emit ErrorOccurred("An error occurred");
+            return false;
+        }
         return true;
     }
 }

@@ -111,13 +111,14 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
 
     function cancelRequest(bytes32 _requestId) public {
         requestRecords[_requestId].status = RequestStatus.Canceled;
-        withdrawLink(fee);
+        _withdrawLink(fee);
     }
 
     /**
-     * @dev Allows the owner to withdraw any remaining LINK tokens from the contract.
+     * @dev Allows the owner to withdraw LINK tokens from the contract.
+     * @param _fee The amount of LINK tokens to withdraw.
      */
-    function withdrawLink(uint256 _fee) public onlyOwner {
+    function _withdrawLink(uint256 _fee) internal onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
         require(link.transfer(msg.sender, _fee), "Unable to transfer");
     }
