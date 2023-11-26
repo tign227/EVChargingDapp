@@ -6,23 +6,49 @@ import "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 
 /**
  * @title FunctionsService
- * @dev This contract interacts with Chainlink's Functions service to send requests to external APIs.
+ * @dev This contract interacts with Chainlink's Functions service to send requestRecords to external APIs.
  * The `url` parameter specifies the address of the target API, and the `path` parameter indicates the
  * JSONPath path in the API response. The contract handles the asynchronous return of the API through
  * the `fulfill` callback function.
  */
 contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
-
     bytes32 private jobId;
     uint256 private fee;
-    mapping(bytes32 => string) requestTypes;
 
-    event RequestMade(
-        bytes32 indexed requestId,
-        string requestType,
-        string result
-    );
+    // Mapping to associate request ID with request data
+    mapping(bytes32 => RequestData) public requestRecords;
+
+    // Event to notify when a request is made
+    event RequestMade(bytes32 indexed requestId);
+    // Event to notify when a request is completed
+    event RequestCompleted(bytes32 indexed requestId);
+    // Event to notify when a request is canceled
+    event RequestCanceled(bytes32 requestId);
+
+    modifier enoughLink() {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        require(
+            link.balanceOf(address(this)) >= fee,
+            "Insufficience LINK balance for fee"
+        );
+        _;
+    }
+
+    enum RequestStatus {
+        Pending,
+        Completed,
+        Canceled
+    }
+
+    struct RequestData {
+        address user; // User's address initiating the request
+        string requestType; //Type of this request
+        string url; // URL of the external API for account information
+        string path; // JSONPath to extract account details from the API response
+        RequestStatus status; // Status of the request
+        string result; //Result of request when callback
+    }
 
     /**
      * @dev Constructor function to initialize the Oracle contract.
@@ -37,25 +63,35 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
 
     /**
      * @dev Initiates a Chainlink request to fetch external data.
-     * @param requestType The type of the request：Account & Reservation
-     * @param url The URL of the external API.
-     * @param path The JSONPath to extract the desired data from the API response.
-     * @return requestId The unique identifier for the Chainlink request.
+     * @param _requestType The type of the request：Account & Reservation
+     * @param _url The URL of the external API.
+     * @param _path The JSONPath to extract the desired data from the API response.
+     * @return _requestId The unique identifier for the Chainlink request.
      */
     function request(
-        string memory requestType,
-        string memory url,
-        string memory path
-    ) public returns (bytes32 requestId) {
+        string memory _requestType,
+        string memory _url,
+        string memory _path
+    ) public enoughLink returns (bytes32 _requestId) {
+        require(bytes(_url).length > 0, "URL must not be empty");
+        require(bytes(_path).length > 0, "Path must not be empty");
         Chainlink.Request memory req = buildChainlinkRequest(
             jobId,
             address(this),
             this.fulfill.selector
         );
-        req.add("get", url);
-        req.add("path", path);
+        req.add("get", _url);
+        req.add("path", _path);
         bytes32 reqId = sendChainlinkRequest(req, fee);
-        requestTypes[reqId] = requestType;
+        requestRecords[reqId] = RequestData({
+            user: msg.sender,
+            requestType: _requestType,
+            url: _url,
+            path: _path,
+            status: RequestStatus.Pending,
+            result: ""
+        });
+        emit RequestMade(reqId);
         return reqId;
     }
 
@@ -68,17 +104,22 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
         bytes32 _requestId,
         string memory _result
     ) public recordChainlinkFulfillment(_requestId) {
-        emit RequestMade(_requestId, requestTypes[_requestId], _result);
+        requestRecords[_requestId].status = RequestStatus.Completed;
+        requestRecords[_requestId].result = _result;
+        emit RequestCompleted(_requestId);
+    }
+
+    function cancelRequest(bytes32 _requestId) public {
+        requestRecords[_requestId].status = RequestStatus.Canceled;
+        _withdrawLink(fee);
     }
 
     /**
-     * @dev Allows the owner to withdraw any remaining LINK tokens from the contract.
+     * @dev Allows the owner to withdraw LINK tokens from the contract.
+     * @param _fee The amount of LINK tokens to withdraw.
      */
-    function withdrawLink() public onlyOwner {
+    function _withdrawLink(uint256 _fee) internal onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-        require(
-            link.transfer(msg.sender, link.balanceOf(address(this))),
-            "Unable to transfer"
-        );
+        require(link.transfer(msg.sender, _fee), "Unable to transfer");
     }
 }
