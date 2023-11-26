@@ -35,7 +35,11 @@ contract AccountRequest {
         require(bytes(_url).length > 0, "URL must not be empty");
         require(bytes(_path).length > 0, "Path must not be empty");
         // Trigger an account information request using the Chainlink service.
-        _requestId = service.request("Account", _url, _path);
+        _requestId = service.request(
+            FunctionsService.RequestType.ACCOUNT,
+            _url,
+            _path
+        );
         emit AccountRequestCreated(msg.sender, _requestId);
         requestsOfUser[msg.sender].push(_requestId);
     }

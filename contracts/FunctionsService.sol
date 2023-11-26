@@ -35,6 +35,11 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
         _;
     }
 
+    enum RequestType {
+        RESERVATION,
+        ACCOUNT
+    }
+
     enum RequestStatus {
         Pending,
         Completed,
@@ -43,7 +48,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
 
     struct RequestData {
         address user; // User's address initiating the request
-        string requestType; //Type of this request
+        RequestType requestType; //Type of this request
         string url; // URL of the external API for account information
         string path; // JSONPath to extract account details from the API response
         RequestStatus status; // Status of the request
@@ -69,7 +74,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
      * @return _requestId The unique identifier for the Chainlink request.
      */
     function request(
-        string memory _requestType,
+        RequestType _requestType,
         string memory _url,
         string memory _path
     ) public enoughLink returns (bytes32 _requestId) {

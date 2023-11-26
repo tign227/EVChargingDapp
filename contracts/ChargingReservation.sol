@@ -35,7 +35,11 @@ contract ChargingReservation {
         require(bytes(_url).length > 0, "URL must not be empty");
         require(bytes(_path).length > 0, "Path must not be empty");
         // Trigger a reservation request using the Chainlink service.
-        bytes32 requestId = service.request("Reservation", _url, _path);
+        bytes32 requestId = service.request(
+            FunctionsService.RequestType.RESERVATION,
+            _url,
+            _path
+        );
         _reservationId = requestId;
         emit ReservationCreated(msg.sender, _reservationId);
         reservationsOfUser[msg.sender].push(_reservationId);
