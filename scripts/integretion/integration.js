@@ -6,27 +6,17 @@ async function main() {
       "FunctionsService"
     );
     //replace with your smart contract address
-    const serviceContractAddress = "0x4Ca6e98187bC1E1e43c26932D4667cC67C742950";
+    const serviceContractAddress = "0xbB151f0Dd0F3f7B9097949fFcA5a34816f65c9Ad";
     //event trigger
     const functions = await FunctionsService.attach(serviceContractAddress);
 
-    functions.on("RequestMade", (_requestId) => {
-      if (
-        keccak256(abi.encodePacked(functions.getRequestType(_requestId))) ==
-        keccak256(abi.encodePacked("Reservation"))
-      ) {
-        console.log(
-          "Reservation is made, the result is : ",
-          functions.getResult(_requestId)
-        );
-      } else if (
-        keccak256(abi.encodePacked(functions.getRequestType(_requestId))) ==
-        keccak256(abi.encodePacked("Account"))
-      ) {
-        console.log(
-          "Query account, the address is : ",
-          functions.getResult(_requestId)
-        );
+    functions.on("RequestCompleted", (_requestId, _requestType, _result) => {
+      if (_requestType === "Reservation") {
+        console.log("Reservation is made, the result is : ", _result);
+      } else if (_requestType == "Account") {
+        console.log("Query account, the address is : ", _result);
+      } else {
+        console.log("Error ");
       }
     });
 
@@ -34,7 +24,7 @@ async function main() {
       "AccountRequest"
     );
     //replace with your smart contract address
-    const accountContractAddress = "0x44c79749A920C74C78DB8F59357533Bf628f3E74";
+    const accountContractAddress = "0xe5D9545095a3C96292b45861F73db32f03FF9790";
 
     const accountRequest = await AccountRequest.attach(accountContractAddress);
     let user = "0xc49341AfaC68ff16e04eD113A65fb8214E377164";
@@ -48,7 +38,7 @@ async function main() {
     );
     //replace with your smart contract address
     const reservationContractAddress =
-      "0xa7efaDedA7b6BAc641453c9be2BA50D614E190Dc";
+      "0xaB809B46a3185f596b092a9D7e636b6C628e7231";
 
     const reservation = await ChargingReservation.attach(
       reservationContractAddress

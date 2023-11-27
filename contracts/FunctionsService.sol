@@ -20,11 +20,15 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     mapping(bytes32 => RequestData) public requestRecords;
 
     // Event to notify when a request is made
-    event RequestMade(bytes32 indexed requestId);
+    event RequestMade(bytes32 indexed _requestId, string _requestType);
     // Event to notify when a request is completed
-    event RequestCompleted(bytes32 indexed requestId);
+    event RequestCompleted(
+        bytes32 indexed requestId,
+        string _requestType,
+        string _result
+    );
     // Event to notify when a request is canceled
-    event RequestCanceled(bytes32 indexed requestId);
+    event RequestCanceled(bytes32 indexed requestId, string _requestType);
 
     modifier enoughLink() {
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
@@ -35,11 +39,6 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
         _;
     }
 
-    enum RequestType {
-        RESERVATION,
-        ACCOUNT
-    }
-
     enum RequestStatus {
         Pending,
         Completed,
@@ -48,7 +47,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
 
     struct RequestData {
         address user; // User's address initiating the request
-        RequestType requestType; //Type of this request
+        string requestType; //Type of this request
         string url; // URL of the external API for account information
         string path; // JSONPath to extract account details from the API response
         RequestStatus status; // Status of the request
@@ -74,7 +73,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
      * @return _requestId The unique identifier for the Chainlink request.
      */
     function request(
-        RequestType _requestType,
+        string memory _requestType,
         string memory _url,
         string memory _path
     ) public enoughLink returns (bytes32 _requestId) {
@@ -96,7 +95,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
             status: RequestStatus.Pending,
             result: ""
         });
-        emit RequestMade(reqId);
+        emit RequestMade(reqId, _requestType);
         return reqId;
     }
 
@@ -111,12 +110,20 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     ) public recordChainlinkFulfillment(_requestId) {
         requestRecords[_requestId].status = RequestStatus.Completed;
         requestRecords[_requestId].result = _result;
-        emit RequestCompleted(_requestId);
+        emit RequestCompleted(
+            _requestId,
+            requestRecords[_requestId].requestType,
+            _result
+        );
     }
 
     function cancelRequest(bytes32 _requestId) public {
         requestRecords[_requestId].status = RequestStatus.Canceled;
         _withdrawLink(fee);
+        emit RequestCanceled(
+            _requestId,
+            requestRecords[_requestId].requestType
+        );
     }
 
     /**
@@ -126,32 +133,5 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     function _withdrawLink(uint256 _fee) internal onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
         require(link.transfer(msg.sender, _fee), "Unable to transfer");
-    }
-
-    /**
-     * @dev Get the result of a completed request
-     * @param _requestId The unique identifier for the Chainlink request.
-     * @return _result the result of the completed request.
-     */
-    function getResult(
-        bytes32 _requestId
-    ) public view returns (string memory _result) {
-        require(
-            requestRecords[_requestId].status == RequestStatus.Completed,
-            "Request is not completed"
-        );
-        _result = requestRecords[_requestId].result;
-    }
-
-    /**
-     * @dev Get the request type for a given requestId.
-     * @param requestId The unique identifier for the Chainlink request.
-     * @return The request type associated with the requestId.
-     */
-    function getRequestType(
-        bytes32 requestId
-    ) public view returns (RequestType) {
-        RequestType requestType = requestRecords[requestId].requestType;
-        return requestType;
     }
 }
