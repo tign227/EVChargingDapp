@@ -6,7 +6,7 @@ async function main() {
       "FunctionsService"
     );
     //replace with your smart contract address
-    const serviceContractAddress = "0xbB151f0Dd0F3f7B9097949fFcA5a34816f65c9Ad";
+    const serviceContractAddress = "0xdC211bD05a035D2dcFB4D9628589d191c513E91F";
     //event trigger
     const functions = await FunctionsService.attach(serviceContractAddress);
 
@@ -24,7 +24,7 @@ async function main() {
       "AccountRequest"
     );
     //replace with your smart contract address
-    const accountContractAddress = "0xe5D9545095a3C96292b45861F73db32f03FF9790";
+    const accountContractAddress = "0xb5232d97ee8D4fC68dEd25358b06c9e98D1B6649";
 
     const accountRequest = await AccountRequest.attach(accountContractAddress);
     let user = "0xc49341AfaC68ff16e04eD113A65fb8214E377164";
@@ -38,7 +38,7 @@ async function main() {
     );
     //replace with your smart contract address
     const reservationContractAddress =
-      "0xaB809B46a3185f596b092a9D7e636b6C628e7231";
+      "0xA4d6D64E72088248Da7a7229591760D33Fb09632";
 
     const reservation = await ChargingReservation.attach(
       reservationContractAddress

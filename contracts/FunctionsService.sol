@@ -23,21 +23,12 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     event RequestMade(bytes32 indexed _requestId, string _requestType);
     // Event to notify when a request is completed
     event RequestCompleted(
-        bytes32 indexed requestId,
+        bytes32 indexed _requestId,
         string _requestType,
         string _result
     );
     // Event to notify when a request is canceled
-    event RequestCanceled(bytes32 indexed requestId, string _requestType);
-
-    modifier enoughLink() {
-        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-        require(
-            link.balanceOf(address(this)) >= fee,
-            "Insufficience LINK balance for fee"
-        );
-        _;
-    }
+    event RequestCanceled(bytes32 indexed _requestId, string _requestType);
 
     enum RequestStatus {
         Pending,
@@ -76,7 +67,7 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
         string memory _requestType,
         string memory _url,
         string memory _path
-    ) public enoughLink returns (bytes32 _requestId) {
+    ) public returns (bytes32 _requestId) {
         require(bytes(_url).length > 0, "URL must not be empty");
         require(bytes(_path).length > 0, "Path must not be empty");
         Chainlink.Request memory req = buildChainlinkRequest(
