@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
-import "./FunctionsService.sol";
+import "./../infru/Functions.sol";
 
 /**
  * @title AccountRequest

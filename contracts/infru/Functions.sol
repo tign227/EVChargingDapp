@@ -14,6 +14,8 @@ import "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 contract FunctionsService is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
     bytes32 private jobId;
+    bytes32 private tokenId;
+    bytes32 private oracleId;
     uint256 private fee;
 
     // Mapping to associate request ID with request data
@@ -50,8 +52,10 @@ contract FunctionsService is ChainlinkClient, ConfirmedOwner {
      * It sets the Chainlink token, Oracle address, job ID, and fee.
      */
     constructor() ConfirmedOwner(msg.sender) {
-        setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
-        setChainlinkOracle(0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD);
+        tokenId = 0x779877A7B0D9E8603169DdbD7836e478b4624789;
+        oracleId = 0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD;
+        setChainlinkToken(tokenId);
+        setChainlinkOracle(oracleId);
         jobId = "7d80a6386ef543a3abb52817f6707e3b";
         fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
     }
